@@ -7,6 +7,7 @@
  * sudo cp gatt_todd_tool \usr\bin\gatt_todd_tool
  * cd \home\todd\Down*\hrm*\tra*
  * from ~\Downloads\hrm data\trainer_raw_data .truestandDATA
+ * also modified "uinput_demo.c" from https://github.com/GrantEdwards/uinput-joystick-demo
  * 
  * 
  * 
@@ -70,6 +71,11 @@
 #include <time.h> // added
 #include "/home/todd/ANT/gatt_one/bluez-5.18/attrib/trig_functions.h" // added
 #include "/home/todd/ANT/gatt_one/bluez-5.18/attrib/track.h" // added
+//#include <stdio.h> // added
+//#include <string.h> // added
+//#include <unistd.h>  // added
+#include <fcntl.h>  // added
+#include <linux/uinput.h>  // added
 #define WINDOW_WIDTH 800 //added
 #define WINDOW_HEIGHT 800 //added
 #define wait_time 60 // added
@@ -78,19 +84,50 @@ double miles_per_kilometer= (0.621371); //added
 double miles_goal = 27.0; // added
 double global_miles; //added
 double global_rival_miles; //added
+double glogbal_goal_miles; // added
+double glogal_goal_miles; // added
 double global_rival_speed; // added
 double global_delta_rotations; //added
 //below added
+int fd;
+int throttle;// = 0; g		lobal??
+int throttle_delta;//=7; 	global??
 #define timespan 5
-
+#define msleep(ms) usleep((ms)*1000)
+static void setup_abs(int fd, unsigned chan, int min, int max);
+int global_iterations;
 double global_previous_rotation;
 char global_mileage_string[50];
 char global_speed_string[50];
 double global_individual_speeds[timespan];
 int global_individual_speed_spot;
 time_t global_start_time;
-
-
+struct input_event ev[2]; //????? should be global
+//struct id
+//	{	int bustype; // is int correct
+//		int vendor; // is int correct
+//		int product; // is int correct
+//		int version; // is int correct
+//	};
+//struct uinput_setup
+//	{	char name[77];
+//		id id_seven;
+//	};
+struct rival_stuff
+	{	float color_red;
+		float color_green;
+		float color_blue;
+		int trackspot;
+		float a_constant;
+		float b_constant;
+		float c_constant;
+		float miles;
+		float speed;
+		float total_distance_to_travel;
+	};
+#define total_rivals 2
+struct rival_stuff list_of_rivals[total_rivals];
+struct uinput_setup setup_two;
 // from https://users.cs.jmu.edu/bernstdh/web/common/lectures/summary_opengl-text.php
 void renderStrokeFontString(
 		float x,
@@ -110,6 +147,19 @@ void renderStrokeFontString(
 	glPopMatrix();
 }
 
+void drawRivalString(float x, float y, float z, char *string) {
+  glRasterPos3f(x, y, z);
+  float deltaX = 0.10;
+  glColor3f(list_of_rivals[0].color_red,	list_of_rivals[0].color_green,	list_of_rivals[0].color_blue);
+  for (char* c = string; *c != '\0'; c++) {
+//	  glutStrokeCharacter (GLUT_STROKE_ROMAN, *c);
+//	  x = x + deltaX;
+//	  glRasterPos3f(x, y, z);
+     glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);  // Updates the position
+  }
+ //  glutStrokeCharacter (GLUT_STROKE_ROMAN, *c);
+ 
+}
 
 void drawString(float x, float y, float z, char *string) {
   glRasterPos3f(x, y, z);
@@ -123,6 +173,32 @@ void drawString(float x, float y, float z, char *string) {
   }
  //  glutStrokeCharacter (GLUT_STROKE_ROMAN, *c);
  
+}
+void draw_list_of_rivals()
+{	int i;
+	float box = 0.005f;
+	char mileage_string[50];
+	//rival_trackspot = floor((global_rival_miles/track_length-floor(global_rival_miles/track_length))*400.0);
+	list_of_rivals[0].trackspot = floor((list_of_rivals[0].miles/track_length-floor(list_of_rivals[0].miles/track_length))*400.0);
+	//global_rival_miles += (-exp_todd(-global_rival_miles/8.61)*9.77+25.0)/3600.0;
+	if (list_of_rivals[0].miles <= list_of_rivals[0].total_distance_to_travel)
+		list_of_rivals[0].miles += (-exp_todd(-list_of_rivals[0].miles/list_of_rivals[0].a_constant)*list_of_rivals[0].b_constant+list_of_rivals[0].c_constant)/3600.0;
+	//glColor3f(1.0f, 0.0f, 1.0f);
+	glColor3f(list_of_rivals[0].color_red, list_of_rivals[0].color_green,list_of_rivals[0].color_blue);
+	/* 
+	  glRectf(	track_data[rival_trackspot][0]-3*box,	
+					track_data[rival_trackspot][1]-3*box, 
+					track_data[rival_trackspot][0]+3*box,	 
+					track_data[rival_trackspot][1]+3*box);*/
+	i = list_of_rivals[0].trackspot;
+	glRectf(	    track_data[i][0]-3*box,	
+					track_data[i][1]-3*box, 
+					track_data[i][0]+3*box,	 
+					track_data[i][1]+3*box);
+	sprintf(mileage_string, "mile = %4.2f delta = %4.2f",list_of_rivals[0].miles,global_miles-list_of_rivals[0].miles);			
+	drawRivalString(-0.25,0.625,0,mileage_string);			
+	
+	//drawString(-0.25f,	0.375f,	0.0f,global_mileage_string);				
 }
 void draw_track()
 {   int i; // for for loop
@@ -154,9 +230,9 @@ void draw_track()
 				track_data[trackspot][0]+4*box,	 
 				track_data[trackspot][1]+4*box);
 	glColor3f(1.0f, 0.0f, 1.0f);
-	global_rival_speed = -exp_todd(-global_rival_miles/8.61)*9.77+25.0;
-	
-	if ((global_rival_miles<miles_goal) &&(global_miles>0.0))
+	global_rival_speed = -exp_todd(-global_rival_miles/8.61)*9.77+25.7;
+	//global_goal_speed =  -exp_todd(-global_goal_miles/8.61)*9.77+25.0;
+	if ((global_rival_miles<miles_goal) &&(global_miles>0.0))//need update miles_goal
 		  //global_rival_miles += (-exp_todd(-global_rival_miles/8.61*10.0)+25.0)/3600.0;
 		  //                               =(-exp_todd(-global_rival_miles/8.61)*9.77+25.0
 			//printf("-exp(-0.005) == %lf\n",-exp_todd(-0.005));
@@ -170,12 +246,18 @@ void draw_track()
 			
 			
 				
-	rival_trackspot = floor((global_rival_miles/track_length-floor(global_rival_miles/track_length))*400.0);	
-	glRectf(	track_data[rival_trackspot][0]-4*box,	
-		    	track_data[rival_trackspot][1]-4*box, 
-				track_data[rival_trackspot][0]+4*box,	 
-				track_data[rival_trackspot][1]+4*box);
-						
+	rival_trackspot = floor((global_rival_miles/track_length-floor(global_rival_miles/track_length))*400.0);
+	//0.56, 1.79
+	/* if (global_iterations>=400)
+		{	printf("EXIT %d/n",global_iterations/(global_iterations-global_iterations)); // intentional divid by zero to exit
+		}*/
+	//if (abs(global_rival_miles>0.58))
+		{glRectf(	track_data[rival_trackspot][0]-3*box,	
+					track_data[rival_trackspot][1]-3*box, 
+					track_data[rival_trackspot][0]+3*box,	 
+					track_data[rival_trackspot][1]+3*box);
+		}
+	draw_list_of_rivals();				
 	glColor3f(1.0f, 0.0f, 0.0f);
 	for (i=0;i<trackspot;i++)
 		{glRectf(	track_data[i][0]-box,	
@@ -231,6 +313,7 @@ void display() {
 	int i;
 	float speed;
 	char speed_string[50];
+	double speed_should_be;
 	
        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
        //clear_screen();
@@ -244,13 +327,45 @@ void display() {
 	   speed = 0.0f;   	
        for (i=0; i<timespan; i++) {speed = speed+ global_individual_speeds[i] ;}
        speed = speed / timespan * 3600.0/1000.0/1000.0*wheel_circumference*miles_per_kilometer;
-       sprintf(speed_string,"Speed = %3.1f",speed);
-       drawString(0.0f,	0.5f,	0.0f,speed_string);
+       
+    //list_of_rivals[0].a_constant = 4.5;
+    //list_of_rivals[0].b_constant = 9.77;
+    //list_of_rivals[0].c_constant = 25;
+    //global_rival_miles += (-exp_todd(-global_rival_miles/8.61)*9.77+25.0)/3600.0; //typo fixed
+       speed_should_be = (-exp_todd(global_miles/8.61)*9.77+25.0);
+       speed_should_be = floor(-speed/speed_should_be*65536.0+37268);
+		memset(&ev,0,sizeof ev); //just add 2:39 2019_10_30
+		ev[0].type = EV_ABS;
+		ev[0].code = ABS_THROTTLE;
+		ev[1].type = EV_SYN;
+		ev[1].code = SYN_REPORT;
+		ev[1].value = 0;
+		
+       ev[0].value = floor(speed_should_be); // throttle set the value in the loop! // how do you convert mileage into speed
+       if (ev[0].value < -32767) ev[0].value = -32765;
+       if (ev[0].value >  32767) ev[0].value =  32765; 
+       //ev[0].value  = 777;
+       if(write(fd, &ev, sizeof ev) < 0)
+        {
+          perror("write");
+          return 1;
+        }
+       sprintf(speed_string,"Speed = %3.1f     ev[0].value == %i",speed,ev[0].value);
+       drawString(-0.5f,	0.5f,	0.0f,speed_string);
        
        glColor3f(0.0f, 1.0f, 0.0f);
        glRectf(-0.75f,0.125f, 0.75f, -0.125f);
        glColor3f(1.0f, 0.0f, 0.0f);
-       printf("global_miles == %f XXX rival_speed == %f XXX %f\n",global_miles,global_rival_speed,global_rival_miles);
+       printf("global_miles == %f XXX rival_speed == %f XXX %f xxx global_iterations = %d\n",global_miles,global_rival_speed,global_rival_miles,global_iterations);
+       // nned to save and restore rival position
+       // glutPositionWindow
+       // start by displaying window coordnitas
+       // need to dictate positions of windows -- maybe save them restore the positions
+       /*if (global_iterations>=400)
+		{	printf("EXIT %d/n",global_iterations/(global_iterations-global_iterations)); // intentional divide by zero to exit
+		} */
+       global_iterations++;
+       
        glRectf(-0.75f,0.075f, -0.75+1.5*global_miles/miles_goal, -0.075f);   
 	
        glutSwapBuffers();
@@ -647,7 +762,7 @@ static gboolean characteristics_write_req(gpointer user_data)
 	}
 
 	gatt_write_char(attrib, opt_handle, value, len, char_write_req_cb,
-									NULL);
+									NULL); //ggatt_write_charets here second
 
 	return FALSE;
 
@@ -823,7 +938,37 @@ int main(int argc, char *argv[])
 	int GLargc;    //created for gluInit
 	char **GLargv; //created for gluInit
 	int i;
-	
+	//int fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK); //global
+    fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+    if (fd < 0)
+		{
+		perror("open /dev/uinput"); // requires sudo ./make_gatt_todd_trial
+		return 1;
+		}
+	ioctl(fd, UI_SET_EVBIT, EV_ABS); // enable analog absolute position handling
+	setup_abs(fd, ABS_THROTTLE,  -332767, 32767);	
+	sprintf(setup_two.name, "Userspace joystick");
+	setup_two.id.bustype = BUS_USB;
+	setup_two.id.vendor = 0x2;
+	setup_two.id.product = 0x3;
+	setup_two.id.version = 2;
+ 
+	if (ioctl(fd, UI_DEV_SETUP, &setup_two))
+	{
+		perror("UI_DEV_SETUP");
+		return 1;
+    }
+	if (ioctl(fd, UI_DEV_CREATE))
+    {
+		perror("UI_DEV_CREATE");
+		return 1;
+    }
+
+  
+	unsigned count = 0;
+	throttle = 0;
+	throttle_delta = 70;
+	global_iterations = 0;
 	
 	time(&global_start_time);
     //global_delta_rotations = 0.0;
@@ -843,7 +988,7 @@ int main(int argc, char *argv[])
     glutCreateWindow("OpenGL - Cre@ting a speedometer");	
     seconds = difftime(timer,global_start_time);
     old_seconds =seconds;
-    while (seconds<51) // add delay here 51seconds
+    while (seconds<41) // add delay here 51seconds
 		{   time(&timer);
 			seconds = difftime(timer,global_start_time);
 			//printf("%f\n",old_seconds);
@@ -871,6 +1016,25 @@ int main(int argc, char *argv[])
     //glClear(GL_COLOR_BUFFER_BIT);
     //glColor3f(0.0, 0.0, 0.0);
     //clear_screen();
+    //global_rival_speed = -exp_todd(-global_rival_miles/8.61)*9.77+25.7;
+    list_of_rivals[0].a_constant = 4.5;
+    list_of_rivals[0].b_constant = 9.77;
+    list_of_rivals[0].c_constant = 25;
+    list_of_rivals[0].color_red = 0.0;
+    list_of_rivals[0].color_blue = 0.0;
+    list_of_rivals[0].color_green = 0.0;
+    list_of_rivals[0].miles = 0.0;
+    list_of_rivals[0].total_distance_to_travel = 29.0;
+    
+    memset(&ev,0,sizeof ev);
+    ev[0].type = EV_ABS;
+    ev[0].code = ABS_THROTTLE;
+    ev[0].value = throttle; // set the value in the loop!
+    ev[1].type = EV_SYN;
+    ev[1].code = SYN_REPORT;
+    ev[1].value = 0;
+    
+    
     
 	//above added 2019_September_20
 	GOptionContext *context;
@@ -925,7 +1089,7 @@ int main(int argc, char *argv[])
 		operation = characteristics_read;
 	else if (opt_char_write)
 		operation = characteristics_write;
-	else if (opt_char_write_req)
+	else if (opt_char_write_req) // I think this is used
 		operation = characteristics_write_req;
 	else if (opt_char_desc)
 		operation = characteristics_desc;
@@ -973,4 +1137,22 @@ done:
 		exit(EXIT_FAILURE);
 	else
 		exit(EXIT_SUCCESS);
+}
+
+// enable and configure an absolution "position" analog channel
+
+static void setup_abs(int fd, unsigned chan, int min, int max)
+{
+  if (ioctl(fd, UI_SET_ABSBIT, chan))
+    perror("UI_SET_ABSBIT");
+  
+  struct uinput_abs_setup s =
+    {
+     .code = chan,
+     //.absinfo = { .minimum = min,  .maximum = max },
+     .absinfo = { .minimum = -32726,  .maximum = 32767 },
+    };
+
+  if (ioctl(fd, UI_ABS_SETUP, &s))
+    perror("UI_ABS_SETUP");
 }
