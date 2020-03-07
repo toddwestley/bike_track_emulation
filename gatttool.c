@@ -8,11 +8,11 @@
  * cd \home\todd\Down*\hrm*\tra*
  * from ~\Downloads\hrm data\trainer_raw_data .truestandDATA
  * also modified "uinput_demo.c" from https://github.com/GrantEdwards/uinput-joystick-demo
- * 
- * 
- * 
+ *
+ *
+ *
  * read https://www.jaredwolff.com/get-started-with-bluetooth-low-energy/
- * 
+ *
  *  need to obtain BlueZ
  *
  *  BlueZ - Bluetooth protocol stack for Linux
@@ -158,7 +158,7 @@ void drawRivalString(float x, float y, float z, char *string) {
      glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);  // Updates the position
   }
  //  glutStrokeCharacter (GLUT_STROKE_ROMAN, *c);
- 
+
 }
 
 void drawString(float x, float y, float z, char *string) {
@@ -172,7 +172,7 @@ void drawString(float x, float y, float z, char *string) {
      glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *c);  // Updates the position
   }
  //  glutStrokeCharacter (GLUT_STROKE_ROMAN, *c);
- 
+
 }
 void draw_list_of_rivals()
 {	int i;
@@ -185,20 +185,20 @@ void draw_list_of_rivals()
 		list_of_rivals[0].miles += (-exp_todd(-list_of_rivals[0].miles/list_of_rivals[0].a_constant)*list_of_rivals[0].b_constant+list_of_rivals[0].c_constant)/3600.0;
 	//glColor3f(1.0f, 0.0f, 1.0f);
 	glColor3f(list_of_rivals[0].color_red, list_of_rivals[0].color_green,list_of_rivals[0].color_blue);
-	/* 
-	  glRectf(	track_data[rival_trackspot][0]-3*box,	
-					track_data[rival_trackspot][1]-3*box, 
-					track_data[rival_trackspot][0]+3*box,	 
+	/*
+	  glRectf(	track_data[rival_trackspot][0]-3*box,
+					track_data[rival_trackspot][1]-3*box,
+					track_data[rival_trackspot][0]+3*box,
 					track_data[rival_trackspot][1]+3*box);*/
 	i = list_of_rivals[0].trackspot;
-	glRectf(	    track_data[i][0]-3*box,	
-					track_data[i][1]-3*box, 
-					track_data[i][0]+3*box,	 
+	glRectf(	    track_data[i][0]-3*box,
+					track_data[i][1]-3*box,
+					track_data[i][0]+3*box,
 					track_data[i][1]+3*box);
-	sprintf(mileage_string, "mile = %4.2f delta = %4.2f",list_of_rivals[0].miles,global_miles-list_of_rivals[0].miles);			
-	drawRivalString(-0.25,0.625,0,mileage_string);			
-	
-	//drawString(-0.25f,	0.375f,	0.0f,global_mileage_string);				
+	sprintf(mileage_string, "mile = %4.2f delta = %4.2f",list_of_rivals[0].miles,global_miles-list_of_rivals[0].miles);
+	drawRivalString(-0.25,0.625,0,mileage_string);
+
+	//drawString(-0.25f,	0.375f,	0.0f,global_mileage_string);
 }
 void draw_track()
 {   int i; // for for loop
@@ -215,63 +215,64 @@ void draw_track()
 	glColor3f(0.0f, 0.0f, 1.0f);
 	box = 0.005f;
 	trackspot = floor((global_miles/track_length-floor(global_miles/track_length))*400.0);
+	
 	for (i=0;i<400;i++)
 		//{if (i > trackspot)
-			{	glRectf(	track_data[i][0]-box,	
-							track_data[i][1]-box, 
-							track_data[i][0]+box,	 
+			{	glRectf(	track_data[i][0]-box,
+							track_data[i][1]-box,
+							track_data[i][0]+box,
 							track_data[i][1]+box);
 			}
-		//}	
+		//}
 	//trackspot = fmod(global_miles,track_length)*400;
 	if (trackspot>400) trackspot=399;
-	glRectf(	track_data[trackspot][0]-4*box,	
-		    	track_data[trackspot][1]-4*box, 
-				track_data[trackspot][0]+4*box,	 
+	glRectf(	track_data[trackspot][0]-4*box,
+		    	track_data[trackspot][1]-4*box,
+				track_data[trackspot][0]+4*box,
 				track_data[trackspot][1]+4*box);
 	glColor3f(1.0f, 0.0f, 1.0f);
-	global_rival_speed = -exp_todd(-global_rival_miles/8.61)*9.77+25.7;
+	global_rival_speed = -exp_todd(-global_rival_miles/8.61)*9.77+27.0; //change 2011_Jan_18
 	//global_goal_speed =  -exp_todd(-global_goal_miles/8.61)*9.77+25.0;
-	if ((global_rival_miles<miles_goal) &&(global_miles>0.0))//need update miles_goal
+	//if ((global_rival_miles<miles_goal) &&(global_miles>0.0))//need update miles_goal
 		  //global_rival_miles += (-exp_todd(-global_rival_miles/8.61*10.0)+25.0)/3600.0;
 		  //                               =(-exp_todd(-global_rival_miles/8.61)*9.77+25.0
 			//printf("-exp(-0.005) == %lf\n",-exp_todd(-0.005));
-			
+
 			//printf("rival speed == %lf rival_miles == %4.2lf !!!!!\n",
 			 //                     (-exp_todd(-global_rival_miles/8.61)*9.77+25.0),global_rival_miles);
-		   
-			global_rival_miles += (-exp_todd(-global_rival_miles/8.61)*9.77+25.0)/3600.0; //typo fixed
-			
+
+			global_rival_miles += (-exp_todd(-global_rival_miles/8.61)*9.77+27.0)/3600.0; //typo fixed //change 2011_Jan_18
+
 			//(-global_rival_miles/8.61)*10.0+25.0)
-			
-			
-				
+
+
+
 	rival_trackspot = floor((global_rival_miles/track_length-floor(global_rival_miles/track_length))*400.0);
 	//0.56, 1.79
 	/* if (global_iterations>=400)
 		{	printf("EXIT %d/n",global_iterations/(global_iterations-global_iterations)); // intentional divid by zero to exit
 		}*/
 	//if (abs(global_rival_miles>0.58))
-		{glRectf(	track_data[rival_trackspot][0]-3*box,	
-					track_data[rival_trackspot][1]-3*box, 
-					track_data[rival_trackspot][0]+3*box,	 
+		{glRectf(	track_data[rival_trackspot][0]-3*box,
+					track_data[rival_trackspot][1]-3*box,
+					track_data[rival_trackspot][0]+3*box,
 					track_data[rival_trackspot][1]+3*box);
 		}
-	draw_list_of_rivals();				
+	draw_list_of_rivals();
 	glColor3f(1.0f, 0.0f, 0.0f);
 	for (i=0;i<trackspot;i++)
-		{glRectf(	track_data[i][0]-box,	
-					track_data[i][1]-box, 
-					track_data[i][0]+box,	 
+		{glRectf(	track_data[i][0]-box,
+					track_data[i][1]-box,
+					track_data[i][0]+box,
 					track_data[i][1]+box);
 		}
-	glColor3f(0.0f, 0.0f, 1.0f);	
-					
+	glColor3f(0.0f, 0.0f, 1.0f);
+
 	//printf("trackspot is %i\n",trackspot);
-		
+
 	//global_miles
 	// track_data[400][2]
-	
+
 	box = 0.005f;
 	radius = 0.417544543351756;
 	cx = 0.532455456648244;
@@ -280,41 +281,41 @@ void draw_track()
 	//draw line piece by piece
 	glColor3f(0.0f, 0.0f, 1.0f);
 	/*for (i=0; i<=50; i++)
-		{	glRectf(	0.0+0.532455456648244f/50.0*i-box,	
+		{	glRectf(	0.0+0.532455456648244f/50.0*i-box,
 						-0.980044543351756f-box, 0.0+
-						0.0+0.532455456648244f/50.0*i+box,	 
+						0.0+0.532455456648244f/50.0*i+box,
 						-0.980044543351756f+box);
 		}*/
 	/*
 	for (i=0; i<= 180; i =i+10)
 		{	xp = radius*cosine_todd((-90+i)*pi/360.0);
 			yp = radius*sine_todd((-90+i)*pi/360.0);
-			glRectf(	0.532455456648244+xp-box,	
+			glRectf(	0.532455456648244+xp-box,
 						-0.5625 +yp-box,
-						0.532455456648244+xp+box,	 
+						0.532455456648244+xp+box,
 						-0.5625 +yp+box);
-						
+
 		}*/
 	/*for (i=0;i<=100; i++)
-		{	glRectf(	0.532455456648244f-0.532455456648244f/50.0*i-box,	
+		{	glRectf(	0.532455456648244f-0.532455456648244f/50.0*i-box,
 						-0.144955456648244-box, 0.0+
-						0.532455456648244f-0.532455456648244f/50.0*i+box,	 
+						0.532455456648244f-0.532455456648244f/50.0*i+box,
 						-0.144955456648244+box);
 		}
 	for (i=0;i<=50; i++)
-		{	glRectf(	-0.532455456648244f+0.532455456648244f/50.0*i-box,	
+		{	glRectf(	-0.532455456648244f+0.532455456648244f/50.0*i-box,
 						-0.980044543351756f-box, 0.0+
-						-0.532455456648244f+0.532455456648244f/50.0*i+box,	 
+						-0.532455456648244f+0.532455456648244f/50.0*i+box,
 						-0.980044543351756f+box);
 		}*/
-	
+
 }
 void display() {
 	int i;
 	float speed;
 	char speed_string[50];
 	double speed_should_be;
-	
+
        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
        //clear_screen();
        drawString(-0.25f,	0.375f,	0.0f,global_mileage_string);
@@ -324,15 +325,15 @@ void display() {
        for (i=0;i<timespan;i++)
 		{printf(" %4.3f ",global_individual_speeds[i]);}
 	   printf("\n");
-	   speed = 0.0f;   	
+	   speed = 0.0f;
        for (i=0; i<timespan; i++) {speed = speed+ global_individual_speeds[i] ;}
        speed = speed / timespan * 3600.0/1000.0/1000.0*wheel_circumference*miles_per_kilometer;
-       
+
     //list_of_rivals[0].a_constant = 4.5;
     //list_of_rivals[0].b_constant = 9.77;
     //list_of_rivals[0].c_constant = 25;
     //global_rival_miles += (-exp_todd(-global_rival_miles/8.61)*9.77+25.0)/3600.0; //typo fixed
-       speed_should_be = (-exp_todd(global_miles/8.61)*9.77+25.0);
+       speed_should_be =    (-exp_todd(-global_miles      /8.61)*9.77+25.0); //another typo fixed
        speed_should_be = floor(-speed/speed_should_be*65536.0+37268);
 		memset(&ev,0,sizeof ev); //just add 2:39 2019_10_30
 		ev[0].type = EV_ABS;
@@ -340,10 +341,10 @@ void display() {
 		ev[1].type = EV_SYN;
 		ev[1].code = SYN_REPORT;
 		ev[1].value = 0;
-		
+
        ev[0].value = floor(speed_should_be); // throttle set the value in the loop! // how do you convert mileage into speed
        if (ev[0].value < -32767) ev[0].value = -32765;
-       if (ev[0].value >  32767) ev[0].value =  32765; 
+       if (ev[0].value >  32767) ev[0].value =  32765;
        //ev[0].value  = 777;
        if(write(fd, &ev, sizeof ev) < 0)
         {
@@ -352,7 +353,7 @@ void display() {
         }
        sprintf(speed_string,"Speed = %3.1f     ev[0].value == %i",speed,ev[0].value);
        drawString(-0.5f,	0.5f,	0.0f,speed_string);
-       
+
        glColor3f(0.0f, 1.0f, 0.0f);
        glRectf(-0.75f,0.125f, 0.75f, -0.125f);
        glColor3f(1.0f, 0.0f, 0.0f);
@@ -365,9 +366,9 @@ void display() {
 		{	printf("EXIT %d/n",global_iterations/(global_iterations-global_iterations)); // intentional divide by zero to exit
 		} */
        global_iterations++;
-       
-       glRectf(-0.75f,0.075f, -0.75+1.5*global_miles/miles_goal, -0.075f);   
-	
+
+       //glRectf(-0.75f,0.075f, -0.75+1.5*global_miles/miles_goal, -0.075f);
+       glRectf(-0.75f,0.075f, -0.75+1.5*((global_miles/miles_goal)-floor(global_miles/miles_goal)), -0.075f);
        glutSwapBuffers();
 }
 
@@ -415,10 +416,10 @@ static void events_handler(const uint8_t *pdu, uint16_t len, gpointer user_data)
 	double average_speed; // added
 	double miles_travelled; // added
 			double seconds; //adeed
-	
-	
+
+
 	handle = get_le16(&pdu[1]);
-    
+
 	switch (pdu[0]) {
 	case ATT_OP_HANDLE_NOTIFY:
 		//g_print("CCNotification handle = 0x%04x value: ", handle);
@@ -432,7 +433,7 @@ static void events_handler(const uint8_t *pdu, uint16_t len, gpointer user_data)
 		global_previous_rotation = rotations;
 		global_individual_speed_spot += 1;
 		if (global_individual_speed_spot > timespan) {global_individual_speed_spot=0;}
-		
+
 		//global_delta_rotations = rotations - global_delta_rotations;
 		//global_speed_array[global_speed_spot] = global_delta_rotations*wheel_circumference/1000.0/1000.0*miles_per_kilometer;
 		//global_speed_spot +=1;
@@ -449,7 +450,7 @@ static void events_handler(const uint8_t *pdu, uint16_t len, gpointer user_data)
 		time(&timer);
 
 		seconds = difftime(timer,global_start_time);
-		
+
 		sprintf(global_mileage_string,"miles =  %4.2f; rival = %4.2f delta %4.2f\n",global_miles,global_rival_miles,global_miles-global_rival_miles);
 		//if (global_speed_spot>5) global_speed_spot=0;
 		display();
@@ -902,9 +903,9 @@ static GOptionEntry options[] = {
 void clearscreen()
 	{glClearColor(1.0, 1.0, 1.0, 1.0); //white background
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	}
-static void init01(void) 
+static void init01(void)
 {
    glClearColor (1.0, 1.0, 1.0, 0.0);  // clear to color
    glShadeModel (GL_FLAT); // The default value is GL_SMOOTH
@@ -920,7 +921,7 @@ void clear_screen()
 		glVertex2f(-0.99,	-0.99);
 		glVertex2f(0.99,	-0.99);
 		glColor3f(1.0,	0.0,	0.0);
-}	
+}
 void setup() {
 	   //global_speed_spot = 0;
 	   //global_speed_array[0] = 0.0;
@@ -946,13 +947,13 @@ int main(int argc, char *argv[])
 		return 1;
 		}
 	ioctl(fd, UI_SET_EVBIT, EV_ABS); // enable analog absolute position handling
-	setup_abs(fd, ABS_THROTTLE,  -332767, 32767);	
+	setup_abs(fd, ABS_THROTTLE,  -332767, 32767);
 	sprintf(setup_two.name, "Userspace joystick");
 	setup_two.id.bustype = BUS_USB;
 	setup_two.id.vendor = 0x2;
 	setup_two.id.product = 0x3;
 	setup_two.id.version = 2;
- 
+
 	if (ioctl(fd, UI_DEV_SETUP, &setup_two))
 	{
 		perror("UI_DEV_SETUP");
@@ -964,12 +965,12 @@ int main(int argc, char *argv[])
 		return 1;
     }
 
-  
+
 	unsigned count = 0;
 	throttle = 0;
 	throttle_delta = 70;
 	global_iterations = 0;
-	
+
 	time(&global_start_time);
     //global_delta_rotations = 0.0;
     time_t timer;
@@ -980,15 +981,15 @@ int main(int argc, char *argv[])
 	global_individual_speed_spot = 0;
 	for (i=0; i<timespan; i ++)
 		{global_individual_speeds[i] = 0.0f;}
-	glutInit(&GLargc,GLargv);		
+	glutInit(&GLargc,GLargv);
 	//glutInitDisplayMode(GLUT_SINGLE);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 800 x 800 
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT); // 800 x 800
     //glutInitWindowPosition(100, 200);
-    glutCreateWindow("OpenGL - Cre@ting a speedometer");	
+    glutCreateWindow("OpenGL - Cre@ting a speedometer");
     seconds = difftime(timer,global_start_time);
     old_seconds =seconds;
-    while (seconds<41) // add delay here 51seconds
+    while (seconds<1) // add delay here 51seconds
 		{   time(&timer);
 			seconds = difftime(timer,global_start_time);
 			//printf("%f\n",old_seconds);
@@ -999,8 +1000,8 @@ int main(int argc, char *argv[])
 	printf("GO\n");
 	printf("  GO\n");
 	printf("    GO\n");
-	
-	 
+
+
 	global_previous_rotation = 0.0;
 	global_miles = 0.0;
 	global_rival_miles= 0.0;
@@ -1011,7 +1012,7 @@ int main(int argc, char *argv[])
     //glBegin(GL_QUADS);
     //init01;
     //clearscreen();
-    
+
     //glClearColor(0.0, 1.0, 0.0, 1.0); //green background
     //glClear(GL_COLOR_BUFFER_BIT);
     //glColor3f(0.0, 0.0, 0.0);
@@ -1025,7 +1026,7 @@ int main(int argc, char *argv[])
     list_of_rivals[0].color_green = 0.0;
     list_of_rivals[0].miles = 0.0;
     list_of_rivals[0].total_distance_to_travel = 29.0;
-    
+
     memset(&ev,0,sizeof ev);
     ev[0].type = EV_ABS;
     ev[0].code = ABS_THROTTLE;
@@ -1033,9 +1034,9 @@ int main(int argc, char *argv[])
     ev[1].type = EV_SYN;
     ev[1].code = SYN_REPORT;
     ev[1].value = 0;
-    
-    
-    
+
+
+
 	//above added 2019_September_20
 	GOptionContext *context;
 	GOptionGroup *gatt_group, *params_group, *char_rw_group;
@@ -1145,7 +1146,7 @@ static void setup_abs(int fd, unsigned chan, int min, int max)
 {
   if (ioctl(fd, UI_SET_ABSBIT, chan))
     perror("UI_SET_ABSBIT");
-  
+
   struct uinput_abs_setup s =
     {
      .code = chan,
